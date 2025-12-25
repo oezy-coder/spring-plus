@@ -21,11 +21,18 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Optional<Todo> findByIdWithUser(@Param("todoId") Long todoId);
 
     @Query("SELECT t FROM Todo t WHERE t.weather = :weather AND t.modifiedAt between :startDate and :endDate")
-    Page<Todo> findByWeatherAndDateRange(String weather, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+    Page<Todo> findByWeatherAndDateRange(
+            @Param("weather") String weather,
+            @Param("startDate") LocalDateTime searchStartDate,
+            @Param("endDate") LocalDateTime searchEndDate,
+            Pageable pageable);
 
     @Query("SELECT t FROM Todo t WHERE t.weather = :weather")
-    Page<Todo> findByWeather(String weather, Pageable pageable);
+    Page<Todo> findByWeather(@Param("weather") String weather, Pageable pageable);
 
     @Query("SELECT t FROM Todo t WHERE t.modifiedAt between :startDate and :endDate")
-    Page<Todo> findByDateRange(LocalDateTime searchStartDate, LocalDateTime searchEndDate, Pageable pageable);
+    Page<Todo> findByDateRange(
+            @Param("startDate") LocalDateTime searchStartDate,
+            @Param("endDate") LocalDateTime searchEndDate,
+            Pageable pageable);
 }
