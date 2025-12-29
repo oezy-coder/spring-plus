@@ -3,9 +3,11 @@ package org.example.expert.domain.todo.service;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.dto.AuthUser;
+import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
+import org.example.expert.domain.todo.dto.response.TodoSearchResponse;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -88,5 +91,26 @@ public class TodoService {
         TodoResponse todoResponse = todoRepository.findByIdWithUser(todoId);
 
         return todoResponse;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TodoSearchResponse> searchTodos(
+            int page,
+            int size,
+            String keyword,
+            LocalDate from,
+            LocalDate to,
+            String nickname) {
+
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new InvalidRequestException("시작일은 종료일보다 클 수 없습니다.");
+        }
+
+        LocalDateTime startDate = from != null ? from.atStartOfDay() : null;
+        LocalDateTime endDate = to != null ? to.plusDays(1).atStartOfDay() : null;
+
+        List<TodoSearchResponse> todoSearchResponseList = todoRepository.searchTodos(page, size, keyword, startDate, endDate, nickname);
+
+        return todoSearchResponseList;
     }
 }
