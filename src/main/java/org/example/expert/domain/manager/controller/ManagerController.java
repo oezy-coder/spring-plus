@@ -23,8 +23,7 @@ public class ManagerController {
     public ResponseEntity<ManagerSaveResponse> saveManager(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable long todoId,
-            @Valid @RequestBody ManagerSaveRequest managerSaveRequest
-    ) {
+            @Valid @RequestBody ManagerSaveRequest managerSaveRequest) {
         return ResponseEntity.ok(managerService.saveManager(authUser, todoId, managerSaveRequest));
     }
 
@@ -37,8 +36,7 @@ public class ManagerController {
     public void deleteManager(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable long todoId,
-            @PathVariable long managerId
-    ) {
+            @PathVariable long managerId) {
         managerService.deleteManager(authUser, todoId, managerId);
     }
 }

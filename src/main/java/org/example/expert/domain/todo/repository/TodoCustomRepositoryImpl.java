@@ -16,6 +16,11 @@ import java.time.LocalDateTime;
 
 import java.util.List;
 
+/**
+ * Todo 조회/검색을 위한 QueryDSL 기반 Custom Repository 구현체
+ * - 단건 조회 시 User 정보 포함
+ * - 검색 시 제목/담당자/생성일 조건 + 총 댓글 수/담당자 수 집계
+ */
 @RequiredArgsConstructor
 public class TodoCustomRepositoryImpl implements TodoCustomRepository {
 
@@ -25,6 +30,10 @@ public class TodoCustomRepositoryImpl implements TodoCustomRepository {
     private final QComment comment = QComment.comment;
     private final QManager manager = QManager.manager;
 
+    /**
+     * Todo 단건 조회
+     * - User 정보를 함께 조회하여 TodoResponse로 바로 매핑
+     */
     @Override
     public TodoResponse findByIdWithUser(long todoId) {
         return jpaQueryFactory
@@ -47,6 +56,15 @@ public class TodoCustomRepositoryImpl implements TodoCustomRepository {
                 .fetchOne();
     }
 
+    /**
+     * Todo 검색
+     * - 제목 키워드(부분 일치)
+     * - 담당자 닉네임(부분 일치)
+     * - 생성일 범위(from ~ to)
+     * - 댓글 수 / 담당자 수 집계
+     * - 생성일 최신순 정렬
+     * - 페이징 처리(offset, limit)
+     */
     @Override
     public List<TodoSearchResponse> searchTodos(
             int page,
@@ -60,8 +78,8 @@ public class TodoCustomRepositoryImpl implements TodoCustomRepository {
                 .select(Projections.constructor(
                         TodoSearchResponse.class,
                         todo.title,
-                        comment.id.countDistinct(),
-                        manager.id.countDistinct())
+                        comment.id.countDistinct(), // 댓글 수 (중복 방지)
+                        manager.id.countDistinct()) // 담당자 수 (중복 방지)
                 )
                 .from(todo)
                 .join(todo.user, user)
@@ -73,9 +91,9 @@ public class TodoCustomRepositoryImpl implements TodoCustomRepository {
                         createdAtFrom(from),
                         createdAtTo(to)
                 )
-                .groupBy(todo.id, todo.title)
+                .groupBy(todo.id, todo.title) // 댓글/담당자 수 집계(count)를 위해 groupBy 필요
                 .orderBy(todo.createdAt.desc())
-                .offset((long) (page - 1) * size)
+                .offset((long) (page - 1) * size) // page는 1부터 시작
                 .limit(size)
                 .fetch();
 

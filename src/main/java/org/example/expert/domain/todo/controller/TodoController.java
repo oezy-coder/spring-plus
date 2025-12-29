@@ -25,8 +25,7 @@ public class TodoController {
     @PostMapping("/todos")
     public ResponseEntity<TodoSaveResponse> saveTodo(
             @AuthenticationPrincipal AuthUser authUser,
-            @Valid @RequestBody TodoSaveRequest todoSaveRequest
-    ) {
+            @Valid @RequestBody TodoSaveRequest todoSaveRequest) {
         return ResponseEntity.ok(todoService.saveTodo(authUser, todoSaveRequest));
     }
 
@@ -36,8 +35,7 @@ public class TodoController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String weather,
             @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate
-            ) {
+            @RequestParam(required = false) LocalDate endDate) {
         return ResponseEntity.ok(todoService.getTodos(page, size, weather, startDate, endDate));
     }
 

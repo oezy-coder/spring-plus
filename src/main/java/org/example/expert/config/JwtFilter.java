@@ -33,7 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String bearerJwt = request.getHeader("Authorization");
 
-        // 토큰이 없으면 통과
+        // 토큰이 없는 요청은 인증이 필요 없는 API로 판단하고 그대로 통과
         if (!StringUtils.hasText(bearerJwt) || !bearerJwt.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
@@ -61,6 +61,8 @@ public class JwtFilter extends OncePerRequestFilter {
             SimpleGrantedAuthority authority =
                     new SimpleGrantedAuthority("ROLE_" + userRole.name());
 
+            // JWT 기반 인증이므로 password는 필요 없고,
+            // 토큰에서 추출한 사용자 정보로 Authentication 객체를 직접 생성
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             authUser,
@@ -91,6 +93,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
     }
 
+    // 인증/인가가 필요 없는 경로는 JWT 필터를 적용하지 않음
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();

@@ -57,21 +57,25 @@ public class TodoService {
     public Page<TodoResponse> getTodos(int page, int size, String weather, LocalDate startDate, LocalDate endDate) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
+        // 기본은 조건 없이 전체 목록 조회 (최신 수정일 기준)
         Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
 
         boolean hasWeather = weather != null && !weather.isBlank();
         boolean hasDateRange = startDate != null && endDate != null && !startDate.isAfter(endDate);
 
         if (hasDateRange) {
+            // 날짜만 받은 경우, 하루 전체 범위로 조회하기 위해 시간 범위로 변환
             LocalDateTime searchStartDate = startDate.atTime(LocalTime.MIN);
             LocalDateTime searchEndDate = endDate.atTime(LocalTime.MAX);
 
+            // 날짜 조건이 있을 때, weather 조건이 있으면 함께 적용
             if (hasWeather) {
                 todos = todoRepository.findByWeatherAndDateRange(weather,searchStartDate, searchEndDate, pageable);
             } else {
                 todos = todoRepository.findByDateRange(searchStartDate, searchEndDate, pageable);
             }
         } else if (hasWeather) {
+            // weather 조건만 있을 때
                 todos = todoRepository.findByWeather(weather, pageable);
         }
 
@@ -102,14 +106,23 @@ public class TodoService {
             LocalDate to,
             String nickname) {
 
+        // 시작일이 종료일보다 늦은 경우 방지
         if (from != null && to != null && from.isAfter(to)) {
             throw new InvalidRequestException("시작일은 종료일보다 클 수 없습니다.");
         }
 
+        // 날짜 검색을 위해 LocalDate를 LocalDateTime 범위로 변환
         LocalDateTime startDate = from != null ? from.atStartOfDay() : null;
         LocalDateTime endDate = to != null ? to.plusDays(1).atStartOfDay() : null;
 
-        List<TodoSearchResponse> todoSearchResponseList = todoRepository.searchTodos(page, size, keyword, startDate, endDate, nickname);
+        List<TodoSearchResponse> todoSearchResponseList = todoRepository.searchTodos(
+                page,
+                size,
+                keyword,
+                startDate,
+                endDate,
+                nickname
+        );
 
         return todoSearchResponseList;
     }
